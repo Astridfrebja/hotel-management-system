@@ -1,0 +1,18 @@
+﻿@using SamletInfo.Models
+<h2>Login</h2>
+
+<form asp-controller="Account" asp-action="Login" method="post">
+
+
+    <div asp-validation-summary="ModelOnly"></div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+    <p>Don't have an account? <a asp-action="Register">Register here</a></p>
+</form>

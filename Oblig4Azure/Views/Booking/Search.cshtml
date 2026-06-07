@@ -1,0 +1,71 @@
+﻿@model SamletInfo.Models.RoomSearchViewModel
+
+@{
+    ViewData["Title"] = "Search for Rooms";
+}
+
+<h2>Search for Rooms</h2>
+
+<form asp-action="Search" method="post">
+    <div>
+        <label asp-for="NumberOfBeds">Beds:</label>
+        <input asp-for="NumberOfBeds" type="number" min="1" class="form-control" />
+        <span asp-validation-for="NumberOfBeds" class="text-danger"></span>
+    </div>
+    <div>
+        <label asp-for="RoomQuality">Quality:</label>
+        <select asp-for="RoomQuality" class="form-control">
+            <option value="">--Select Quality--</option>
+            <option value="Standard">Standard</option>
+            <option value="Deluxe">Deluxe</option>
+            <option value="Suite">Suite</option>
+        </select>
+        <span asp-validation-for="RoomQuality" class="text-danger"></span>
+    </div>
+    <div>
+        <label asp-for="CheckInDate">From:</label>
+        <input asp-for="CheckInDate" type="date" class="form-control" />
+        <span asp-validation-for="CheckInDate" class="text-danger"></span>
+    </div>
+    <div>
+        <label asp-for="EndDate">To:</label>
+        <input asp-for="EndDate" type="date" class="form-control" />
+        <span asp-validation-for="EndDate" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+    <a asp-controller="Booking" asp-action="MyBookings" class="btn btn-primary">
+        Allerede reservert?
+    </a>
+
+</form>
+
+@if (Model?.AvailableRooms != null && Model.AvailableRooms.Any())
+{
+    <h2>Available Rooms</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Room</th>
+                <th>Beds</th>
+                <th>Quality</th>
+                <th>Book</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var room in Model.AvailableRooms)
+            {
+                <tr>
+                    <td>@room.RoomType</td>
+                    <td>@room.Beds</td>
+                    <td>@room.Quality</td>
+                    <td><a asp-action="BookDirectly" asp-route-roomId="@room.Id" class="btn btn-success">Book</a></td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No available rooms found. Try another search.</p>
+}

@@ -1,0 +1,31 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ServiceAppMaui.MainPage"
+             Title="TjenesteApp">
+
+    <VerticalStackLayout Padding="10">
+        <Label Text="Velg rolle:" />
+        <Picker x:Name="RolePicker" SelectedIndexChanged="RolePicker_SelectedIndexChanged">
+            <Picker.Items>
+                <x:String>Cleaning</x:String>
+                <x:String>Maintenance</x:String>
+                <x:String>Service</x:String>
+            </Picker.Items>
+        </Picker>
+
+        <CollectionView x:Name="TaskList" SelectionMode="Single" HeightRequest="300">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Padding="10">
+                        <Label Text="{Binding Type}" FontAttributes="Bold"/>
+                        <Label Text="{Binding Status}" />
+                        <Label Text="{Binding Note}" />
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Text="Marker som ferdig" Clicked="CompleteTask_Clicked" />
+    </VerticalStackLayout>
+</ContentPage>
+

@@ -1,0 +1,93 @@
+﻿<Window x:Class="HotelFront.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HotelFront"
+        mc:Ignorable="d"
+        Title="HotelFront" Height="700" Width="1000" Background="#F9F9F9">
+
+    <Window.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3*" />
+            <RowDefinition Height="2*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Booking Grid -->
+        <GroupBox Header="Reservasjoner" Grid.Row="0" Grid.Column="0" Margin="5" Padding="5">
+            <DataGrid Name="BookingGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" 
+                      CanUserResizeColumns="True" SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="40"/>
+                    <DataGridTextColumn Header="Kunde-email" Binding="{Binding CustomerEmail}" Width="*"/>
+                    <DataGridTextColumn Header="Innsjekk" Binding="{Binding CheckIn}" Width="130"/>
+                    <DataGridTextColumn Header="Utsjekk" Binding="{Binding CheckOut}" Width="130"/>
+                    <DataGridTextColumn Header="Rom-ID" Binding="{Binding RoomId}" Width="60"/>
+                    <DataGridTextColumn Header="Romtype" Binding="{Binding room.Quality}" Width="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Room Grid -->
+        <GroupBox Header="Rom" Grid.Row="0" Grid.Column="1" Margin="5" Padding="5">
+            <DataGrid Name="RoomGrid" AutoGenerateColumns="False" SelectionChanged="RoomGrid_SelectionChanged" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Rom-ID" Binding="{Binding Id}" Width="50"/>
+                    <DataGridTextColumn Header="Senger" Binding="{Binding Beds}" Width="70"/>
+                    <DataGridTextColumn Header="Kvalitet" Binding="{Binding Quality}" Width="80"/>
+                    <DataGridTextColumn Header="Tilgjengelig" Binding="{Binding IsAvailable}" Width="80"/>
+                    <DataGridTextColumn Header="Romtype" Binding="{Binding RoomType}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Booking Form -->
+        <GroupBox Header="Ny Reservasjon" Grid.Row="1" Grid.Column="0" Margin="5" Padding="10">
+            <StackPanel Orientation="Vertical" Margin="10">
+                <TextBlock Text="E-post:" Margin="0,5,0,0"/>
+                <TextBox Name="NewBookingEmailTextBox" Width="200" TextChanged="NewBookingEmailTextBox_TextChanged"/>
+
+                <TextBlock Text="Innsjekkingsdato:" Margin="0,5,0,0"/>
+                <DatePicker Name="NewBookingCheckInDatePicker" Width="200"/>
+
+                <TextBlock Text="Utsjekkingsdato:" Margin="0,5,0,0"/>
+                <DatePicker Name="NewBookingCheckOutDatePicker" Width="200"/>
+
+                <Button Content="Lagre ny reservasjon" Click="SaveNewBooking_Click"
+                        Width="160" Margin="0,10,0,0" IsEnabled="False" Name="SaveNewBookingButton"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Oppgave Form -->
+        <GroupBox Header="Oppgave for rom" Grid.Row="1" Grid.Column="1" Margin="5,5,5,83" Padding="10">
+            <StackPanel Orientation="Vertical" Margin="10">
+                <TextBlock Text="Type (rolle):"/>
+                <ComboBox Name="TaskTypeComboBox" Width="200" SelectionChanged="TaskTypeComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Cleaning" />
+                    <ComboBoxItem Content="Service" />
+                    <ComboBoxItem Content="Maintenance" />
+                </ComboBox>
+
+                <TextBlock Text="Oppgave:" Margin="0,5,0,0"/>
+                <ComboBox Name="TaskNoteComboBox" Width="200"/>
+
+                <Button Content="Legg til oppgave" Click="AddServiceTask_Click" Width="160" Margin="0,10,0,0"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Kontrollknapper -->
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                    Grid.Row="1" Grid.Column="0" Margin="10">
+            <!--  <Button Content="Oppdater Reservasjoner" Click="RefreshButton_Click" Width="180" Height="40" Margin="5"/>-->
+        </StackPanel>
+        <Button Content="Slett Reservasjon" Click="DeleteBooking_Click" Grid.Column="1" Margin="155,216,155,10" Grid.Row="1"/>
+    </Grid>
+</Window>

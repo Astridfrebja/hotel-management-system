@@ -1,0 +1,33 @@
+﻿@using SamletInfo.Models
+@model SamletInfo.Models.BookingViewModel
+
+@{
+    ViewData["Title"] = "Book a Room";
+}
+<h1>Book a Room</h1>
+
+<form method="post" asp-action="Book" asp-route-roomId="@ViewBag.RoomId">
+    <div class="form-group">
+        <label asp-for="CheckInDate">Check-in Date</label>
+        <input asp-for="CheckInDate" type="date" class="form-control" required />
+        <span asp-validation-for="CheckInDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="RoomType">Room Type</label>
+        <select asp-for="RoomType" class="form-control">
+            <option value="Single">Single</option>
+            <option value="Double">Double</option>
+            <option value="Suite">Suite</option>
+        </select>
+        <span asp-validation-for="RoomType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Book Room</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
