@@ -1,21 +1,27 @@
 ﻿@model SamletInfo.Models.RoomSearchViewModel
 
 @{
-    ViewData["Title"] = "Search for Rooms";
+    ViewData["Title"] = "Søk etter rom";
 }
 
-<h2>Search for Rooms</h2>
+<h2>Søk etter rom</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-warning">@TempData["Error"]</div>
+}
 
 <form asp-action="Search" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div>
-        <label asp-for="NumberOfBeds">Beds:</label>
+        <label asp-for="NumberOfBeds">Senger:</label>
         <input asp-for="NumberOfBeds" type="number" min="1" class="form-control" />
         <span asp-validation-for="NumberOfBeds" class="text-danger"></span>
     </div>
     <div>
-        <label asp-for="RoomQuality">Quality:</label>
+        <label asp-for="RoomQuality">Kvalitet:</label>
         <select asp-for="RoomQuality" class="form-control">
-            <option value="">--Select Quality--</option>
+            <option value="">-- Velg kvalitet --</option>
             <option value="Standard">Standard</option>
             <option value="Deluxe">Deluxe</option>
             <option value="Suite">Suite</option>
@@ -23,32 +29,35 @@
         <span asp-validation-for="RoomQuality" class="text-danger"></span>
     </div>
     <div>
-        <label asp-for="CheckInDate">From:</label>
-        <input asp-for="CheckInDate" type="date" class="form-control" />
+        <label asp-for="CheckInDate">Fra:</label>
+        <input asp-for="CheckInDate" type="date" class="form-control" required />
         <span asp-validation-for="CheckInDate" class="text-danger"></span>
     </div>
     <div>
-        <label asp-for="EndDate">To:</label>
-        <input asp-for="EndDate" type="date" class="form-control" />
+        <label asp-for="EndDate">Til:</label>
+        <input asp-for="EndDate" type="date" class="form-control" required />
         <span asp-validation-for="EndDate" class="text-danger"></span>
     </div>
-    <button type="submit" class="btn btn-primary">Search</button>
+    <button type="submit" class="btn btn-primary">Søk</button>
     <a asp-controller="Booking" asp-action="MyBookings" class="btn btn-primary">
         Allerede reservert?
     </a>
-
 </form>
 
 @if (Model?.AvailableRooms != null && Model.AvailableRooms.Any())
 {
-    <h2>Available Rooms</h2>
+    <h2>Ledige rom</h2>
+    @if (ViewBag.IsLoggedIn != true)
+    {
+        <p>Du må <a asp-controller="Account" asp-action="Login">logge inn</a> for å reservere.</p>
+    }
     <table class="table">
         <thead>
             <tr>
-                <th>Room</th>
-                <th>Beds</th>
-                <th>Quality</th>
-                <th>Book</th>
+                <th>Romtype</th>
+                <th>Senger</th>
+                <th>Kvalitet</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -58,14 +67,22 @@
                     <td>@room.RoomType</td>
                     <td>@room.Beds</td>
                     <td>@room.Quality</td>
-                    <td><a asp-action="BookDirectly" asp-route-roomId="@room.Id" class="btn btn-success">Book</a></td>
-
+                    <td>
+                        @if (ViewBag.IsLoggedIn == true)
+                        {
+                            <a asp-action="BookDirectly"
+                               asp-route-roomId="@room.Id"
+                               asp-route-checkIn="@Model.CheckInDate?.ToString("yyyy-MM-dd")"
+                               asp-route-checkOut="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                               class="btn btn-success">Reserver</a>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
 }
-else
+else if (ViewBag.HasSearched == true)
 {
-    <p>No available rooms found. Try another search.</p>
+    <p>Ingen rom tilgjengelige</p>
 }

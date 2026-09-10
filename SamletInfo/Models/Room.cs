@@ -4,12 +4,12 @@
     {
         public int Id { get; set; }
         public int Beds { get; set; }
-        public String Quality { get; set; }
+        public string Quality { get; set; } = "";
         public bool IsAvailable { get; set; }
 
-        public ICollection<Booking> Bookings { get; set; }
-        public ICollection<ServiceTask> ServiceTasks { get; set; }
-        public string RoomType => $"{Quality} - {Beds} beds";
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<ServiceTask> ServiceTasks { get; set; } = new List<ServiceTask>();
+        public string RoomType => $"{Quality} - {Beds} senger";
 
     }
 }

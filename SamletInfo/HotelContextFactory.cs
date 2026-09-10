@@ -9,10 +9,10 @@ namespace SamletInfo
         public HotelContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<HotelContext>();
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                ?? "Server=localhost,1433;Database=HotelDb;User Id=sa;Password=HotelDev_123;TrustServerCertificate=True;Encrypt=True;MultipleActiveResultSets=True;";
 
-            optionsBuilder.UseSqlServer(
-                "Server=<server>;Database=<database>;User ID=<username>;Password=<password>;"
-            );
+            optionsBuilder.UseSqlServer(connectionString);
 
             return new HotelContext(optionsBuilder.Options);
         }

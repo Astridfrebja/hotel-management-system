@@ -7,8 +7,8 @@
         <Label Text="Velg rolle:" />
         <Picker x:Name="RolePicker" SelectedIndexChanged="RolePicker_SelectedIndexChanged">
             <Picker.Items>
-                <x:String>Cleaning</x:String>
-                <x:String>Maintenance</x:String>
+                <x:String>Rengjøring</x:String>
+                <x:String>Vedlikehold</x:String>
                 <x:String>Service</x:String>
             </Picker.Items>
         </Picker>
@@ -28,4 +28,3 @@
         <Button Text="Marker som ferdig" Clicked="CompleteTask_Clicked" />
     </VerticalStackLayout>
 </ContentPage>
-

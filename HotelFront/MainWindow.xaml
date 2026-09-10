@@ -27,7 +27,7 @@
                       CanUserResizeColumns="True" SelectionMode="Single">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="40"/>
-                    <DataGridTextColumn Header="Kunde-email" Binding="{Binding CustomerEmail}" Width="*"/>
+                    <DataGridTextColumn Header="Kunde-e-post" Binding="{Binding CustomerEmail}" Width="*"/>
                     <DataGridTextColumn Header="Innsjekk" Binding="{Binding CheckIn}" Width="130"/>
                     <DataGridTextColumn Header="Utsjekk" Binding="{Binding CheckOut}" Width="130"/>
                     <DataGridTextColumn Header="Rom-ID" Binding="{Binding RoomId}" Width="60"/>

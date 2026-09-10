@@ -14,20 +14,29 @@ public partial class MainPage : ContentPage
 
     private async void RolePicker_SelectedIndexChanged(object sender, EventArgs e)
     {
-        string selected = RolePicker.SelectedItem.ToString();
+        if (RolePicker.SelectedItem is not string selected)
+        {
+            return;
+        }
 
         string actualType = selected switch
         {
-            "Cleaning" => "Cleaner",
+            "Cleaning" or "Rengjøring" => "Cleaner",
             "Service" => "Service",
-            "Maintenance" => "Maintenance",
+            "Maintenance" or "Vedlikehold" => "Maintenance",
             _ => selected
         };
 
-        _tasks = await _api.GetTasksAsync(actualType);
-        TaskList.ItemsSource = _tasks;
+        try
+        {
+            _tasks = await _api.GetTasksAsync(actualType);
+            TaskList.ItemsSource = _tasks;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Feil", $"Kunne ikke hente oppgaver. Start webappen først.\n{ex.Message}", "OK");
+        }
     }
-
 
     private async void CompleteTask_Clicked(object sender, EventArgs e)
     {

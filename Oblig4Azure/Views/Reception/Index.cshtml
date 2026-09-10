@@ -1,0 +1,167 @@
+@using SamletInfo.Models
+@{
+    ViewData["Title"] = "Resepsjon";
+    var bookings = ViewBag.Bookings as List<Booking> ?? new List<Booking>();
+    var rooms = ViewBag.Rooms as List<Room> ?? new List<Room>();
+    var templates = ViewBag.Templates as List<TaskTemplate> ?? new List<TaskTemplate>();
+    var tasks = ViewBag.Tasks as List<ServiceTask> ?? new List<ServiceTask>();
+}
+
+<h2>Resepsjon</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <h4>Reservasjoner</h4>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Kunde-e-post</th>
+                    <th>Innsjekk</th>
+                    <th>Utsjekk</th>
+                    <th>Rom</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var booking in bookings)
+            {
+                <tr>
+                    <td>@booking.Id</td>
+                    <td>@booking.CustomerEmail</td>
+                    <td>@booking.CheckIn.ToString("yyyy-MM-dd")</td>
+                    <td>@booking.CheckOut.ToString("yyyy-MM-dd")</td>
+                    <td>@booking.RoomId @booking.Room?.Quality</td>
+                    <td>
+                        <form asp-action="DeleteBooking" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="bookingId" value="@booking.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Slett</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-6">
+        <h4>Rom</h4>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Rom-ID</th>
+                    <th>Senger</th>
+                    <th>Kvalitet</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var room in rooms)
+            {
+                <tr>
+                    <td>@room.Id</td>
+                    <td>@room.Beds</td>
+                    <td>@room.Quality</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-6">
+        <h4>Ny reservasjon</h4>
+        <form asp-action="AddBooking" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-2">
+                <label>Rom</label>
+                <select name="roomId" class="form-control" required>
+                    @foreach (var room in rooms)
+                    {
+                        <option value="@room.Id">Rom @room.Id — @room.RoomType</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-2">
+                <label>E-post</label>
+                <input name="customerEmail" class="form-control" required />
+            </div>
+            <div class="mb-2">
+                <label>Innsjekkingsdato</label>
+                <input name="checkIn" type="date" class="form-control" required />
+            </div>
+            <div class="mb-2">
+                <label>Utsjekkingsdato</label>
+                <input name="checkOut" type="date" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Lagre ny reservasjon</button>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <h4>Oppgave for rom</h4>
+        <form asp-action="AddTask" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-2">
+                <label>Rom</label>
+                <select name="roomId" class="form-control" required>
+                    @foreach (var room in rooms)
+                    {
+                        <option value="@room.Id">Rom @room.Id</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-2">
+                <label>Rolle</label>
+                <select name="type" id="taskType" class="form-control" required>
+                    <option value="Cleaning">Rengjøring</option>
+                    <option value="Service">Service</option>
+                    <option value="Maintenance">Vedlikehold</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <label>Oppgave</label>
+                <select name="templateId" id="templateId" class="form-control" required>
+                    @foreach (var template in templates)
+                    {
+                        <option value="@template.Id" data-type="@template.Type">@template.Note</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Legg til oppgave</button>
+        </form>
+
+        <h5 class="mt-4">Oppgaver</h5>
+        <ul>
+            @foreach (var task in tasks)
+            {
+                <li>Rom @task.RoomId — @UiText.Role(task.Type) — @task.Note (@UiText.Status(task.Status))</li>
+            }
+        </ul>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTemplates() {
+            const type = document.getElementById('taskType').value;
+            const mapped = type === 'Cleaning' ? 'Cleaner' : type;
+            const select = document.getElementById('templateId');
+            for (const option of select.options) {
+                option.hidden = option.dataset.type !== mapped;
+            }
+            const firstVisible = [...select.options].find(o => !o.hidden);
+            if (firstVisible) select.value = firstVisible.value;
+        }
+        document.getElementById('taskType').addEventListener('change', filterTemplates);
+        filterTemplates();
+    </script>
+}

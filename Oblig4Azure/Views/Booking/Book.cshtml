@@ -2,30 +2,25 @@
 @model SamletInfo.Models.BookingViewModel
 
 @{
-    ViewData["Title"] = "Book a Room";
+    ViewData["Title"] = "Reserver rom";
 }
-<h1>Book a Room</h1>
+<h1>Reserver rom</h1>
 
-<form method="post" asp-action="Book" asp-route-roomId="@ViewBag.RoomId">
-    <div class="form-group">
-        <label asp-for="CheckInDate">Check-in Date</label>
+<form method="post" asp-action="Book" asp-route-roomId="@ViewBag.RoomId" class="col-md-6">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="CheckInDate" class="form-label"></label>
         <input asp-for="CheckInDate" type="date" class="form-control" required />
         <span asp-validation-for="CheckInDate" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
-        <label asp-for="RoomType">Room Type</label>
-        <select asp-for="RoomType" class="form-control">
-            <option value="Single">Single</option>
-            <option value="Double">Double</option>
-            <option value="Suite">Suite</option>
-        </select>
-        <span asp-validation-for="RoomType" class="text-danger"></span>
+    <div class="mb-3">
+        <label asp-for="CheckOutDate" class="form-label"></label>
+        <input asp-for="CheckOutDate" type="date" class="form-control" required />
+        <span asp-validation-for="CheckOutDate" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Book Room</button>
-    </div>
+    <button type="submit" class="btn btn-primary">Reserver rom</button>
 </form>
 
 @section Scripts {

@@ -20,7 +20,8 @@ namespace ServiceAppMaui
 
         public async Task<List<ServiceTask>> GetTasksAsync(string roleType)
         {
-            return await _client.GetFromJsonAsync<List<ServiceTask>>($"/api/tasks?type={roleType}");
+            return await _client.GetFromJsonAsync<List<ServiceTask>>($"/api/tasks?type={roleType}")
+                ?? new List<ServiceTask>();
         }
 
         public async Task<bool> UpdateTaskAsync(ServiceTask task)

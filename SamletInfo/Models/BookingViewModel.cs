@@ -8,12 +8,16 @@ namespace SamletInfo.Models
     {
         [Required]
         [DataType(DataType.Date)]
-        [Display(Name = "Check-in Date")]
+        [Display(Name = "Innsjekk")]
         public DateTime CheckInDate { get; set; }
 
         [Required]
-        [Display(Name = "Room Type")]
-        public string RoomType { get; set; }
+        [DataType(DataType.Date)]
+        [Display(Name = "Utsjekk")]
+        public DateTime CheckOutDate { get; set; }
+
+        [Display(Name = "Romtype")]
+        public string? RoomType { get; set; }
     }
 }
 

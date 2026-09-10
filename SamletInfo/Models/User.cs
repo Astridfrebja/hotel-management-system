@@ -7,12 +7,14 @@ namespace SamletInfo.Models
     {
         public int Id { get; set; }
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "E-post er påkrevd")]
+        [EmailAddress(ErrorMessage = "Ugyldig e-postadresse")]
+        [Display(Name = "E-post")]
         public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Passord er påkrevd")]
         [DataType(DataType.Password)]
+        [Display(Name = "Passord")]
         public string Password { get; set; }
     }
 }

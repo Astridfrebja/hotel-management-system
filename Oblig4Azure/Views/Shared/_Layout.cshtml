@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="nb">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,16 +15,29 @@
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Oblig4Azure</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                        aria-expanded="false" aria-label="Vis meny">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    @{
+                        var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("UserEmail"));
+                    }
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Hjem</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Booking" asp-action="Search">Søk</a>
+                        </li>
+                        <li class="nav-item">
+                            @if (isLoggedIn)
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a>
+                            }
+                            else
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Logg inn</a>
+                            }
                         </li>
                     </ul>
                 </div>
@@ -39,7 +52,11 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Oblig4Azure - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Oblig4Azure - <a asp-area="" asp-controller="Home" asp-action="Privacy">Personvern</a>
+            <span class="mx-2">|</span>
+            <a asp-controller="Reception" asp-action="Index">Resepsjon</a>
+            <span class="mx-2">|</span>
+            <a asp-controller="ServiceDesk" asp-action="Index">Service</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

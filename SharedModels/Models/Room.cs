@@ -8,7 +8,7 @@
         public bool IsAvailable { get; set; }
 
         public ICollection<Booking> Bookings { get; set; }
-        public string RoomType => $"{Quality} - {Beds} beds";
+        public string RoomType => $"{Quality} - {Beds} senger";
 
     }
 }

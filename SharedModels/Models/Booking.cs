@@ -15,6 +15,8 @@ namespace SharedModels.Models
 
         public int RoomId { get; set; }
         public Room? Room { get; set; }
+
+        public string Status { get; set; } = "Reserved";
     }
 }
 

@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using SamletInfo.Data;
 using SamletInfo.Models;
-using Microsoft.AspNetCore.Http; 
+using SamletInfo.Services;
 
 namespace SamletInfo.Controllers
-
 {
     public class BookingController : Controller
     {
@@ -16,81 +15,128 @@ namespace SamletInfo.Controllers
         {
             _context = context;
         }
+
         public IActionResult Index()
         {
-            return RedirectToAction("Search"); // eller return View(); hvis du har en Index.cshtml
+            return RedirectToAction("Search");
         }
 
         public IActionResult Search()
         {
-            return View(new RoomSearchViewModel()); // Pass an instance of the view model
+            ViewBag.IsLoggedIn = IsLoggedIn();
+            return View(new RoomSearchViewModel());
         }
-
 
         [HttpPost]
         public IActionResult Search(RoomSearchViewModel searchViewModel)
         {
+            if (searchViewModel.CheckInDate == null || searchViewModel.EndDate == null)
+            {
+                ModelState.AddModelError(string.Empty, "Velg fra- og tildato.");
+                searchViewModel.AvailableRooms = new List<Room>();
+                ViewBag.IsLoggedIn = IsLoggedIn();
+                return View(searchViewModel);
+            }
+
+            var from = searchViewModel.CheckInDate.Value.Date;
+            var to = searchViewModel.EndDate.Value.Date;
+            if (to <= from)
+            {
+                ModelState.AddModelError(string.Empty, "Utsjekk må være etter innsjekk.");
+                searchViewModel.AvailableRooms = new List<Room>();
+                ViewBag.IsLoggedIn = IsLoggedIn();
+                return View(searchViewModel);
+            }
+
             var rooms = _context.Rooms
-    .Where(r =>
-        (searchViewModel.NumberOfBeds == null || r.Beds == searchViewModel.NumberOfBeds) &&
-        (string.IsNullOrEmpty(searchViewModel.RoomQuality) || r.Quality == searchViewModel.RoomQuality) &&
-        r.IsAvailable) 
-    .ToList();
-
-
-            Console.WriteLine($"Fant {rooms.Count} rom som matcher søket");
+                .Where(r =>
+                    (searchViewModel.NumberOfBeds == null || r.Beds == searchViewModel.NumberOfBeds) &&
+                    (string.IsNullOrEmpty(searchViewModel.RoomQuality) || r.Quality == searchViewModel.RoomQuality))
+                .ToList()
+                .Where(r => RoomAvailability.IsFree(_context, r.Id, from, to))
+                .ToList();
 
             searchViewModel.AvailableRooms = rooms;
+            searchViewModel.CheckInDate = from;
+            searchViewModel.EndDate = to;
+            ViewBag.HasSearched = true;
+            ViewBag.IsLoggedIn = IsLoggedIn();
             return View(searchViewModel);
         }
 
-
         public IActionResult Book(int id)
         {
-            var room = _context.Rooms.Find(id);
-            if (room == null || !room.IsAvailable) return NotFound();
+            var login = RequireLogin();
+            if (login != null)
+            {
+                return login;
+            }
 
-            // Consider passing relevant room info to the booking view model if needed
-            var bookingViewModel = new BookingViewModel();
-            // You might want to pre-populate some properties here if necessary
-            ViewBag.RoomId = id; // Or pass it within the view model
-            return View(bookingViewModel);
+            var room = _context.Rooms.Find(id);
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.RoomId = id;
+            return View(new BookingViewModel
+            {
+                CheckInDate = DateTime.Today,
+                CheckOutDate = DateTime.Today.AddDays(2)
+            });
         }
-        public IActionResult BookDirectly(int roomId)
+
+        public IActionResult BookDirectly(int roomId, DateTime? checkIn, DateTime? checkOut)
         {
-            var room = _context.Rooms.Find(roomId);
-            if (room == null || !room.IsAvailable) return NotFound();
+            var login = RequireLogin();
+            if (login != null)
+            {
+                return login;
+            }
+
+            var from = (checkIn ?? DateTime.Today).Date;
+            var to = (checkOut ?? from.AddDays(3)).Date;
+            if (to <= from || !RoomAvailability.IsFree(_context, roomId, from, to))
+            {
+                TempData["Error"] = "Ingen rom tilgjengelige";
+                return RedirectToAction(nameof(Search));
+            }
+
+            var email = HttpContext.Session.GetString("UserEmail")!;
 
             var booking = new Booking
             {
                 RoomId = roomId,
-                CheckIn = DateTime.Now,
-                CheckOut = DateTime.Now.AddDays(3),
-                CustomerEmail = HttpContext.Session.GetString("UserEmail") ?? "anonymous@example.com"
+                CheckIn = from,
+                CheckOut = to,
+                CustomerEmail = email,
+                Status = "Reserved"
             };
 
-            room.IsAvailable = false;
-            _context.Rooms.Update(room); // Oppdaterer rommet i databasen!
             _context.Bookings.Add(booking);
             _context.SaveChanges();
 
-            return RedirectToAction("MyBookings", new { email = booking.CustomerEmail });
+            return RedirectToAction("Index", "Home");
         }
- //       [HttpGet]
-    //    public IActionResult GetBookings()
-  //      {
-  //          var bookings = _context.Bookings
-   //             .Include(b => b.room) // Henter romdata automatisk!
-   //             .ToList();
-
-    //        return Ok(bookings);
-  //      }
-
-
 
         [HttpPost]
-        public IActionResult Book(BookingViewModel bookingViewModel, int roomId) // Receive the view model and roomId
+        public IActionResult Book(BookingViewModel bookingViewModel, int roomId)
         {
+            var login = RequireLogin();
+            if (login != null)
+            {
+                return login;
+            }
+
+            if (bookingViewModel.CheckOutDate <= bookingViewModel.CheckInDate)
+            {
+                ModelState.AddModelError("CheckOutDate", "Utsjekk må være etter innsjekk.");
+            }
+            else if (!RoomAvailability.IsFree(_context, roomId, bookingViewModel.CheckInDate, bookingViewModel.CheckOutDate))
+            {
+                ModelState.AddModelError(string.Empty, "Ingen rom tilgjengelige");
+            }
+
             if (ModelState.IsValid)
             {
                 var room = _context.Rooms.Find(roomId);
@@ -99,23 +145,23 @@ namespace SamletInfo.Controllers
                     var booking = new Booking
                     {
                         RoomId = roomId,
-                        CheckIn = bookingViewModel.CheckInDate,
-                        // You'll need to get the CheckOut date from somewhere (another input?)
-                        CustomerEmail = User?.Identity?.Name ?? "anonymous@example.com", // Simple way to get a user identifier
-                        Room = room
+                        CheckIn = bookingViewModel.CheckInDate.Date,
+                        CheckOut = bookingViewModel.CheckOutDate.Date,
+                        CustomerEmail = HttpContext.Session.GetString("UserEmail")!,
+                        Status = "Reserved"
                     };
-                    room.IsAvailable = false;
 
                     _context.Bookings.Add(booking);
                     _context.SaveChanges();
 
-                    return RedirectToAction("MyBookings", new { email = booking.CustomerEmail });
+                    return RedirectToAction("Index", "Home");
                 }
             }
-            // If ModelState is not valid or room not found, return the view with the view model
+
             ViewBag.RoomId = roomId;
             return View(bookingViewModel);
         }
+
         public IActionResult CancelBooking(int bookingId)
         {
             var booking = _context.Bookings.Find(bookingId);
@@ -124,8 +170,7 @@ namespace SamletInfo.Controllers
                 var room = _context.Rooms.Find(booking.RoomId);
                 if (room != null)
                 {
-                    room.IsAvailable = true; // Gjør rommet ledig igjen
-                    _context.Rooms.Update(room); // 🟢 Oppdaterer romstatusen!
+                    room.IsAvailable = true;
                 }
 
                 _context.Bookings.Remove(booking);
@@ -135,19 +180,36 @@ namespace SamletInfo.Controllers
             return RedirectToAction("MyBookings");
         }
 
-
         public IActionResult MyBookings()
         {
-            _context.ChangeTracker.Clear(); // 🟢 Sørger for at vi henter ferske data fra databasen!
-
-            var userEmail = User.Identity.Name ?? HttpContext.Session.GetString("UserEmail");
+            var userEmail = HttpContext.Session.GetString("UserEmail") ?? User?.Identity?.Name;
             var userBookings = _context.Bookings
                 .Include(b => b.Room)
-                .Where(b => b.CustomerEmail == userEmail)
+                .Where(b => userEmail == null || b.CustomerEmail == userEmail)
                 .ToList();
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                userBookings = new List<Booking>();
+            }
 
             return View(userBookings);
         }
 
+        private bool IsLoggedIn()
+        {
+            return !string.IsNullOrEmpty(HttpContext.Session.GetString("UserEmail"));
+        }
+
+        private IActionResult? RequireLogin()
+        {
+            if (IsLoggedIn())
+            {
+                return null;
+            }
+
+            var returnUrl = Request.Path + Request.QueryString;
+            return RedirectToAction("Login", "Account", new { returnUrl });
+        }
     }
 }

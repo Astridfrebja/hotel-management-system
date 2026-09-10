@@ -1,24 +1,24 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using SamletInfo.Controllers;
 using SamletInfo.Data;
 
 namespace Oblig4Azure
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Logging.AddConsole(); // Legg til konsoll-logging HER!
+            builder.Logging.AddConsole();
 
-            // Add services to the container.
-            builder.Services.AddControllersWithViews();
-            builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    });
+            builder.Services.AddControllersWithViews()
+                .AddApplicationPart(typeof(AccountController).Assembly)
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler =
+                        System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                });
 
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
@@ -28,13 +28,12 @@ namespace Oblig4Azure
                 options.Cookie.IsEssential = true;
             });
 
-            // Konfigurer DbContext for å bruke Azure-tilkoblingsstrengen
-            // I Program.cs i Oblig4Azure:
-            builder.Services.AddDbContext<HotelContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-                    x => x.MigrationsAssembly("SamletInfo")));
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
 
-            // Legg til autentiseringstjenester
+            builder.Services.AddDbContext<HotelContext>(options =>
+                options.UseSqlServer(connectionString, x => x.MigrationsAssembly("SamletInfo")));
+
             builder.Services.AddAuthentication("CookieAuth")
                 .AddCookie("CookieAuth", options =>
                 {
@@ -42,34 +41,69 @@ namespace Oblig4Azure
                     options.AccessDeniedPath = "/Account/AccessDenied";
                 });
 
-            builder.Services.AddAuthorization(); // Legg til autoriseringstjenester.
+            builder.Services.AddAuthorization();
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            });
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
+            await InitializeDatabaseAsync(app);
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
+                app.UseHttpsRedirection();
             }
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
-            // Legg til autentisering og autorisering middleware.
+            app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseSession();
 
             app.MapControllers();
-
-            app.UseSession();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Account}/{action=Login}/{id?}");
 
-            app.Run();
+            await app.RunAsync();
+        }
+
+        private static async Task InitializeDatabaseAsync(WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<HotelContext>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+            for (var attempt = 1; attempt <= 30; attempt++)
+            {
+                try
+                {
+                    await db.Database.MigrateAsync();
+                    DbInitializer.Seed(db);
+                    logger.LogInformation("Database is ready.");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Waiting for SQL Server (attempt {Attempt}/30).", attempt);
+                    if (attempt == 30)
+                    {
+                        throw;
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(2));
+                }
+            }
         }
     }
 }

@@ -17,6 +17,9 @@ namespace SamletInfo.Models
 
         public int RoomId { get; set; }
         public Room? Room { get; set; }
+
+        /// <summary>Reserved, CheckedIn, CheckedOut, Cancelled</summary>
+        public string Status { get; set; } = "Reserved";
     }
 }
 

@@ -1,9 +1,35 @@
-﻿@using SamletInfo.Models
+﻿@model IEnumerable<SamletInfo.Models.Booking>
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Hjem";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Mine reservasjoner</h1>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Romtype</th>
+                <th>Innsjekk</th>
+                <th>Utsjekk</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in Model)
+            {
+                <tr>
+                    <td>@booking.Room?.RoomType</td>
+                    <td>@booking.CheckIn.ToShortDateString()</td>
+                    <td>@booking.CheckOut.ToShortDateString()</td>
+                    <td>@UiText.Status(booking.Status)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Du har ingen reservasjoner <a asp-controller="Booking" asp-action="Search">søk her</a></p>
+}

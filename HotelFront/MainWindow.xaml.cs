@@ -111,7 +111,9 @@ namespace HotelFront
         {
             if (TaskTypeComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
-                string roleType = selectedItem.Content.ToString();
+                string roleType = selectedItem.Content?.ToString() == "Cleaning"
+                    ? "Cleaner"
+                    : selectedItem.Content?.ToString() ?? "";
                 await LoadTaskTemplates(roleType);
             }
         }
@@ -133,7 +135,9 @@ namespace HotelFront
                 var task = new ServiceTask
                 {
                     RoomId = selectedRoom.Id,
-                    Type = selectedTypeItem.Content.ToString(),
+                    Type = selectedTypeItem.Content?.ToString() == "Cleaning"
+                        ? "Cleaner"
+                        : selectedTypeItem.Content?.ToString(),
                     Note = selectedTemplate.Note,
                     Status = "New"
                 };

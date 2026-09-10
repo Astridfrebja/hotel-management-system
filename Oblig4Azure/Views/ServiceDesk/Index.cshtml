@@ -1,0 +1,60 @@
+@model List<SamletInfo.Models.ServiceTask>
+@{
+    ViewData["Title"] = "Service";
+    var selected = ViewBag.SelectedType as string ?? "";
+}
+
+<h2>Service</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<form method="get" class="mb-3">
+    <label>Velg rolle:</label>
+    <select name="type" class="form-control" onchange="this.form.submit()">
+        <option value="">-- alle --</option>
+        <option value="Cleaning" selected="@(selected == "Cleaning" ? "selected" : null)">Rengjøring</option>
+        <option value="Maintenance" selected="@(selected == "Maintenance" ? "selected" : null)">Vedlikehold</option>
+        <option value="Service" selected="@(selected == "Service" ? "selected" : null)">Service</option>
+    </select>
+</form>
+
+@if (Model == null || !Model.Any())
+{
+    <p>Ingen åpne oppgaver for denne rollen.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Rom</th>
+                <th>Rolle</th>
+                <th>Status</th>
+                <th>Oppgave</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var task in Model)
+        {
+            <tr>
+                <td>@task.RoomId</td>
+                <td>@UiText.Role(task.Type)</td>
+                <td>@UiText.Status(task.Status)</td>
+                <td>@task.Note</td>
+                <td>
+                    <form asp-action="Complete" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@task.Id" />
+                        <input type="hidden" name="type" value="@selected" />
+                        <button type="submit" class="btn btn-success btn-sm">Marker som ferdig</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

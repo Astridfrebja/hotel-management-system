@@ -3,8 +3,10 @@
 @model SamletInfo.Models.User
 
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Registrer";
 }
+
+<h2>Registrer ny bruker</h2>
 
 <form asp-controller="Account" asp-action="Register" method="post">
     <div asp-validation-summary="All"></div>
@@ -18,5 +20,5 @@
         <input asp-for="Password" class="form-control" type="password" />
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
-    <button type="submit" class="btn btn-primary">Register</button></button>
+    <button type="submit" class="btn btn-primary">Registrer</button>
 </form>

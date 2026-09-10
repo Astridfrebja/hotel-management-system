@@ -1,20 +1,19 @@
-﻿@using SamletInfo.Models
-@model IEnumerable<Booking>
+﻿@model IEnumerable<Booking>
 
 @{
-    ViewData["Title"] = "My Bookings";
+    ViewData["Title"] = "Mine reservasjoner";
 }
 
-<h1>My Bookings</h1>
+<h1>Mine reservasjoner</h1>
 
 @if (Model.Any())
 {
     <table class="table">
         <thead>
             <tr>
-                <th>Room Type</th>
-                <th>Check-In Date</th>
-                <th>Check-out Date</th>
+                <th>Romtype</th>
+                <th>Innsjekk</th>
+                <th>Utsjekk</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -25,7 +24,7 @@
                     <td>@booking.Room?.RoomType</td>
                     <td>@booking.CheckIn.ToShortDateString()</td>
                     <td>@booking.CheckOut.ToShortDateString()</td>
-                    <td>Confirmed</td>
+                    <td>@UiText.Status(booking.Status)</td>
                 </tr>
             }
         </tbody>
@@ -33,5 +32,5 @@
 }
 else
 {
-    <p>You have no bookings.</p>
+    <p>Du har ingen reservasjoner <a asp-controller="Booking" asp-action="Search">søk her</a></p>
 }
